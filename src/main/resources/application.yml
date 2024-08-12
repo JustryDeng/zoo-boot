@@ -1,0 +1,126 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-boot-jd
+  data:
+    redis:
+      database: 1
+      host: 127.0.0.1
+      port: 6379
+  datasource:
+    url: jdbc:mysql://localhost:3306/demo?serverTimezone=GMT%2B8&useSSL=false&useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+    username: root
+    password: dengshuai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+
+############## Zoo-Sa-Token 配置 ##############
+sa-token:
+  token-name: JD-AUTH-TOKEN
+  token-prefix: Bearer
+  #  # token 有效期（单位：秒） 默认30天，-1 代表永久有效
+  timeout: 2592000
+  is-log: false
+  zoo-auth:
+    basic:
+      valid-url-permit: true
+      url-whitelist:
+        - /doc.html/**
+        - /webjars/**
+        - /swagger**
+        - /v3/api-docs/**
+        - /actuator/**
+        - /error
+        - /favicon.ico
+        - /login/**
+      error-mapping:
+        11051: com.ideaaedi.zoo.commonbase.entity.BaseCodeMsgEnum.ACCESS_DENY
+        11017: com.ideaaedi.zoo.commonbase.entity.BaseCodeMsgEnum.MISS_JWT_TOKEN
+
+logging:
+  level:
+    root: info
+    com.ideaaedi.boot.mapper: debug
+
+############## 接口文档 ##############
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html # swagger-ui界面访问地址
+    tags-sorter:
+  api-docs:
+    path: /v3/api-docs # 接口数据访问地址
+  # API分组
+  group-configs:
+    - group: 'demo-group'
+      display-name: 'demo组'
+      packages-to-scan: com.ideaaedi.boot.controller
+      #packages-to-exclude:
+      # 匹配的接口
+      paths-to-match: '/**'
+      #paths-to-exclude:
+  # zoo对openapi3的增强配置
+  zoo-knife4j:
+    info:
+      title: "springboot的springboot"
+      description: "基于springboot，提供springboot技术拼接"
+      version: "1.0.0"
+      termsOfService: "服务条款：尊老爱幼，从我做起"
+      contact:
+        name: "JustryDeng"
+        email: "13548417409@163.com"
+        url: "https://gitee.com/JustryDeng/projects"
+    # 文档中直接访问接口时的便捷鉴权配置
+    security-scheme:
+      scheme-name: defaultBearerAuth
+      header-key: ${sa-token.token-name:Authentication}
+      scheme: bearer
+      bearer-format: JWT
+    file-type-mappings:
+      - type: java.time.LocalTime
+        target-type: string
+        format: HH:mm:ss
+      - type: java.time.LocalDate
+        target-type: string
+        format: yyyy-MM-dd
+      - type: java.time.LocalDateTime
+        target-type: string
+        format: yyyy-MM-dd HH:mm:ss
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true # 是否启用knife4j
+  production: false # 是否开启生产环境保护策略（这将屏蔽相关页面和api接口，详见https://doc.xiaominfo.com/docs/features/accessControl）
+  setting:
+    language: zh_cn # Ui默认显示语言. 中文(zh-CN)、英文(en-US)
+    enable-swagger-models: false # 是否显示界面中SwaggerModel功能
+    enable-filter-multipart-apis: true # RequestMapping的接口请求类型是否只显示一个指定类型（默认为POST）的接口
+    enable-footer: false # 是否显示Footer
+  basic:
+    enable: false # 是否对Knife4j提供的资源提供BasicHttp校验,保护文档
+    username: admin
+    password: 123456
+  # 自定义文档
+  documents:
+    - name: 响应字典 # 一级菜单名
+      locations: classpath:api-doc/dict/* # markdown文件的位置
+      group: ${springdoc.group-configs[0].display-name} # 填${springdoc.group-configs[x].display-name}对应值，表示将本菜单展示在哪个分组下
+    - name: 常见问题
+      locations: classpath:api-doc/faq/*
+      group: ${springdoc.group-configs[0].display-name}
+
+
+zoo:
+  ############## Zoo组件概览 ##############
+  guide:
+    enable: true
+    show-detail: false
+  ############## 审计日志 ##############
+  audit-log:
+    ignore-request-types:
+      - jakarta.servlet.http.HttpServletRequest
+      - jakarta.servlet.http.HttpServletResponse
+      - org.springframework.web.multipart.MultipartFile
+      - '[B' # 忽略 byte[]
+    ignore-response-types:
+      - '[B' # 忽略 byte[]
